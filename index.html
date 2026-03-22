@@ -82,7 +82,6 @@
             imgElement.src = steps[step].img;
             mainBtn.innerHTML = steps[step].btn;
             
-            // Show "No" button only on the actual question (the last item in the array)
             noBtn.style.display = (step === steps.length - 1) ? 'block' : 'none';
             step++;
         } else if (step === steps.length) {
@@ -100,6 +99,7 @@
         const customMsg = document.getElementById('messageInput').value;
         const mainBtn = document.getElementById('mainBtn');
         mainBtn.innerText = "Sending...";
+        mainBtn.onclick = null; // Prevent double clicks during send
 
         fetch('https://formspree.io/f/mdawvqle', {
             method: 'POST',
@@ -114,6 +114,7 @@
             document.getElementById('displayImg').src = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYng0ZHNzMWdhM2o0NXZkaXBtM2N2MHJwaDU5YTlicGFxeHdhZ2VnaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/T70hpBP1L0N7U0jtkq/giphy.gif";
             
             mainBtn.innerText = "Yes";
+            // Important: We overwrite the nextStep function so it actually redirects
             mainBtn.onclick = () => { window.location.href = "flowers-main/index.html"; };
             
             document.getElementById('noBtn').style.display = 'none';
