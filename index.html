@@ -92,13 +92,15 @@
             noBtn.style.display = 'none';
             step++;
         } else {
-            saveResponse();
+            saveResponse('YES! ❤️');
         }
     }
 
-    function saveResponse() {
+    function saveResponse(answerType) {
         const customMsg = document.getElementById('messageInput').value;
         const mainBtn = document.getElementById('mainBtn');
+        const originalText = mainBtn.innerText;
+        
         mainBtn.innerText = "Sending...";
         mainBtn.onclick = null; 
 
@@ -106,31 +108,36 @@
             method: 'POST',
             body: JSON.stringify({
                 name: userName,
-                answer: 'YES! ❤️',
-                message: customMsg
+                answer: answerType,
+                message: customMsg || "(No extra message)"
             }),
             headers: { 'Content-Type': 'application/json' }
         }).finally(() => {
-            document.getElementById('text').innerHTML = "Yon ohhh! <br> Do you want some flowers?";
-            document.getElementById('displayImg').src = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYng0ZHNzMWdhM2o0NXZkaXBtM2N2MHJwaDU5YTlicGFxeHdhZ2VnaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/T70hpBP1L0N7U0jtkq/giphy.gif";
-            
-            mainBtn.innerText = "Yes";
-            mainBtn.onclick = () => { window.location.href = "flowers-main/index.html"; };
-            
-            document.getElementById('noBtn').style.display = 'none';
-            document.getElementById('messageInput').style.display = 'none';
-            document.getElementById('happyMusic').play();
+            if (answerType.includes('YES')) {
+                document.getElementById('text').innerHTML = "Yon ohhh! <br> Do you want some flowers?";
+                document.getElementById('displayImg').src = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYng0ZHNzMWdhM2o0NXZkaXBtM2N2MHJwaDU5YTlicGFxeHdhZ2VnaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/T70hpBP1L0N7U0jtkq/giphy.gif";
+                
+                mainBtn.innerText = "Yes";
+                mainBtn.onclick = () => { window.location.href = "flowers-main/index.html"; };
+                
+                document.getElementById('noBtn').style.display = 'none';
+                document.getElementById('messageInput').style.display = 'none';
+                document.getElementById('happyMusic').play();
+            }
         });
     }
 
     function sayNo() {
+        // Record the "No" response first
+        saveResponse('NO 💔');
+
+        // Update UI
         document.getElementById('text').innerHTML = "Aray mo, pakak"; 
         document.getElementById('noBtn').style.display = 'none'; 
         document.getElementById('mainBtn').style.display = 'none';
         document.getElementById('messageInput').style.display = 'none';
         document.getElementById('displayImg').src = "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWNmc2UyeTZoZzM1bzI3ZHBubTNnNXZ1aDJicjBzMXI0aHQ5d2ZsYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lGBecpB2dIMwt6ohfI/giphy.gif";
         
-        // Play the sad meow
         document.getElementById('sadMusic').play();
     }
 </script>
