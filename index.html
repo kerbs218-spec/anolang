@@ -10,14 +10,14 @@
         img { width: 250px; height: 250px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; }
         h1 { color: #555; font-size: 1.2rem; margin-bottom: 30px; min-height: 3.5rem; }
         input { width: 80%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ddd; outline: none; text-align: center; }
-        textarea { width: 80%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ddd; outline: none; text-align: center; font-family: inherit; resize: none; }
+        textarea { width: 90%; padding: 12px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; outline: none; text-align: center; font-family: inherit; resize: none; display: none; }
         .btn { padding: 12px 25px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; background-color: #b3b3ff; color: white; transition: 0.3s; width: 100%; }
         .btn:hover { background-color: #9999ff; }
         .btn-container { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
         .row-btns { display: flex; gap: 10px; width: 100%; }
-        #noBtn { background-color: #ffb3b3; } 
+        #noBtn { background-color: #ffb3b3; display: none; } 
         #noBtn:hover { background-color: #ff9999; }
-        #messageInput { display: none; }
+        #submitMsgBtn { display: none; }
     </style>
 </head>
 <body>
@@ -35,19 +35,21 @@
     <img id="displayImg" src="https://media.giphy.com/media/6hKL8BI8rRNrMRFtAx/giphy.gif">
     <h1 id="text">Hi!</h1>
     
-    <textarea id="messageInput" rows="2" placeholder="May sasabihin ka ba?"></textarea>
+    <textarea id="messageInput" rows="3" placeholder="Sulat ka dito..."></textarea>
     
     <div class="btn-container">
         <div class="row-btns" id="actionButtons">
             <button id="mainBtn" class="btn" onclick="nextStep()">tap tap</button>
-            <button id="noBtn" class="btn" style="display:none;" onclick="sayNo()">No</button>
+            <button id="noBtn" class="btn" onclick="handleChoice('NO')">No</button>
         </div>
+        <button id="submitMsgBtn" class="btn" onclick="finalSubmit()">Send Message</button>
     </div>
 </div>
 
 <script>
     let step = 0;
     let userName = "";
+    let savedAnswer = "";
 
     const steps = [
         { text: "Wait lang... may itatanong sana ako.", img: "https://media.giphy.com/media/BNlSrpW0e4nbgVZ2we/giphy.gif", btn: "Ano yun?" },
@@ -76,68 +78,71 @@
         const imgElement = document.getElementById('displayImg');
         const mainBtn = document.getElementById('mainBtn');
         const noBtn = document.getElementById('noBtn');
-        const msgInput = document.getElementById('messageInput');
 
         if (step < steps.length) {
             textElement.innerHTML = steps[step].text;
             imgElement.src = steps[step].img;
             mainBtn.innerHTML = steps[step].btn;
             
-            // On the last question, show the "No" button AND the message box
             if (step === steps.length - 1) {
                 noBtn.style.display = 'block';
-                msgInput.style.display = 'block';
+                // Change Yes button to call the handleChoice function
+                mainBtn.onclick = () => handleChoice('YES');
             }
             step++;
-        } else {
-            // This triggers if they click "Yes! ❤️"
-            saveResponse('YES! ❤️');
         }
     }
 
-    function saveResponse(answerType) {
-        const customMsg = document.getElementById('messageInput').value;
-        const mainBtn = document.getElementById('mainBtn');
-        const noBtn = document.getElementById('noBtn');
+    function handleChoice(choice) {
+        savedAnswer = choice;
+        const textElement = document.getElementById('text');
+        const imgElement = document.getElementById('displayImg');
+        const actionButtons = document.getElementById('actionButtons');
+        const msgInput = document.getElementById('messageInput');
+        const submitBtn = document.getElementById('submitMsgBtn');
+
+        // Hide original buttons
+        actionButtons.style.display = 'none';
         
-        mainBtn.innerText = "Sending...";
-        mainBtn.disabled = true;
-        noBtn.style.display = 'none';
+        // Show Message box and New Submit button
+        msgInput.style.display = 'block';
+        submitBtn.style.display = 'block';
+
+        if (choice === 'YES') {
+            textElement.innerHTML = "Yon ohhh! ❤️ <br> May sasabihin ka ba bago tayo kumuha ng flowers?";
+            imgElement.src = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYng0ZHNzMWdhM2o0NXZkaXBtM2N2MHJwaDU5YTlicGFxeHdhZ2VnaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/T70hpBP1L0N7U0jtkq/giphy.gif";
+            document.getElementById('happyMusic').play();
+        } else {
+            textElement.innerHTML = "Aray mo, pakak... <br> Bakit naman? (Baka lang may reason haha)";
+            imgElement.src = "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWNmc2UyeTZoZzM1bzI3ZHBubTNnNXZ1aDJicjBzMXI0aHQ5d2ZsYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lGBecpB2dIMwt6ohfI/giphy.gif";
+            document.getElementById('sadMusic').play();
+        }
+    }
+
+    function finalSubmit() {
+        const customMsg = document.getElementById('messageInput').value;
+        const submitBtn = document.getElementById('submitMsgBtn');
+        
+        submitBtn.innerText = "Sending...";
+        submitBtn.disabled = true;
 
         fetch('https://formspree.io/f/mdawvqle', {
             method: 'POST',
             body: JSON.stringify({
                 name: userName,
-                answer: answerType,
+                answer: savedAnswer,
                 message: customMsg || "(No message provided)"
             }),
             headers: { 'Content-Type': 'application/json' }
         }).finally(() => {
-            if (answerType.includes('YES')) {
-                document.getElementById('text').innerHTML = "Yon ohhh! <br> Do you want some flowers?";
-                document.getElementById('displayImg').src = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYng0ZHNzMWdhM2o0NXZkaXBtM2N2MHJwaDU5YTlicGFxeHdhZ2VnaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/T70hpBP1L0N7U0jtkq/giphy.gif";
-                
-                mainBtn.innerText = "Yes, please!";
-                mainBtn.disabled = false;
-                mainBtn.onclick = () => { window.location.href = "flowers-main/index.html"; };
-                
+            if (savedAnswer === 'YES') {
+                window.location.href = "flowers-main/index.html";
+            } else {
+                document.getElementById('text').innerHTML = "Message sent. <br> Ingat ka palagi! 🥰";
                 document.getElementById('messageInput').style.display = 'none';
-                document.getElementById('happyMusic').play();
+                submitBtn.style.display = 'none';
             }
         });
-    }
-
-    function sayNo() {
-        // Grab the message they typed before recording the 'No'
-        saveResponse('NO 💔');
-
-        document.getElementById('text').innerHTML = "Aray mo, pakak <br> why naman"; 
-        document.getElementById('mainBtn').style.display = 'none';
-        document.getElementById('noBtn').style.display = 'none';
-        document.getElementById('messageInput').style.display = 'none';
-        document.getElementById('displayImg').src = "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWNmc2UyeTZoZzM1bzI3ZHBubTNnNXZ1aDJicjBzMXI0aHQ5d2ZsYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lGBecpB2dIMwt6ohfI/giphy.gif";
-        
-        document.getElementById('sadMusic').play();
     }
 </script>
 </body>
