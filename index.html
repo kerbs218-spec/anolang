@@ -10,10 +10,12 @@
         img { width: 250px; height: 250px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; }
         h1 { color: #555; font-size: 1.2rem; margin-bottom: 30px; min-height: 3.5rem; }
         input { width: 80%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ddd; outline: none; text-align: center; }
+        textarea { width: 80%; padding: 12px; margin-bottom: 10px; border-radius: 12px; border: 1px solid #ddd; outline: none; text-align: center; font-family: inherit; resize: none; }
         .btn { padding: 12px 25px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; background-color: #b3b3ff; color: white; transition: 0.3s; width: 100%; }
         .btn:hover { background-color: #9999ff; }
-        .btn-container { display: flex; justify-content: center; height: 50px; gap: 20px; }
-        #noBtn { display: none; background-color: #ffb3b3; } 
+        .btn-container { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+        .row-btns { display: flex; gap: 10px; width: 100%; }
+        #noBtn { background-color: #ffb3b3; } 
         #noBtn:hover { background-color: #ff9999; }
         #messageInput { display: none; }
     </style>
@@ -32,10 +34,14 @@
 <div class="card" id="mainCard" style="display:none;">
     <img id="displayImg" src="https://media.giphy.com/media/6hKL8BI8rRNrMRFtAx/giphy.gif">
     <h1 id="text">Hi!</h1>
-    <input type="text" id="messageInput" placeholder="May sasabihin ka ba?">
+    
+    <textarea id="messageInput" rows="2" placeholder="May sasabihin ka ba?"></textarea>
+    
     <div class="btn-container">
-        <button id="mainBtn" class="btn" onclick="nextStep()">tap tap</button>
-        <button id="noBtn" class="btn" onclick="sayNo()">No</button>
+        <div class="row-btns" id="actionButtons">
+            <button id="mainBtn" class="btn" onclick="nextStep()">tap tap</button>
+            <button id="noBtn" class="btn" style="display:none;" onclick="sayNo()">No</button>
+        </div>
     </div>
 </div>
 
@@ -52,18 +58,11 @@
 
     function startApp() {
         const inputVal = document.getElementById('userName').value.trim();
-        
         if (inputVal.toLowerCase() === "admin") {
             const pass = prompt("Verification required:");
-            if (pass === "12345") {
-                window.location.href = "https://formspree.io/forms"; 
-                return;
-            } else {
-                alert("Unauthorized!");
-                return;
-            }
+            if (pass === "12345") { window.location.href = "https://formspree.io/forms"; return; }
+            else { alert("Unauthorized!"); return; }
         }
-
         if (inputVal !== "") {
             userName = inputVal;
             document.getElementById('loginCard').style.display = 'none';
@@ -77,21 +76,21 @@
         const imgElement = document.getElementById('displayImg');
         const mainBtn = document.getElementById('mainBtn');
         const noBtn = document.getElementById('noBtn');
+        const msgInput = document.getElementById('messageInput');
 
         if (step < steps.length) {
             textElement.innerHTML = steps[step].text;
             imgElement.src = steps[step].img;
             mainBtn.innerHTML = steps[step].btn;
             
-            noBtn.style.display = (step === steps.length - 1) ? 'block' : 'none';
-            step++;
-        } else if (step === steps.length) {
-            textElement.innerText = "Ano say mo hehe";
-            document.getElementById('messageInput').style.display = 'block';
-            mainBtn.innerText = "Submit Answer";
-            noBtn.style.display = 'none';
+            // On the last question, show the "No" button AND the message box
+            if (step === steps.length - 1) {
+                noBtn.style.display = 'block';
+                msgInput.style.display = 'block';
+            }
             step++;
         } else {
+            // This triggers if they click "Yes! ❤️"
             saveResponse('YES! ❤️');
         }
     }
@@ -99,17 +98,18 @@
     function saveResponse(answerType) {
         const customMsg = document.getElementById('messageInput').value;
         const mainBtn = document.getElementById('mainBtn');
-        const originalText = mainBtn.innerText;
+        const noBtn = document.getElementById('noBtn');
         
         mainBtn.innerText = "Sending...";
-        mainBtn.onclick = null; 
+        mainBtn.disabled = true;
+        noBtn.style.display = 'none';
 
         fetch('https://formspree.io/f/mdawvqle', {
             method: 'POST',
             body: JSON.stringify({
                 name: userName,
                 answer: answerType,
-                message: customMsg || "(No extra message)"
+                message: customMsg || "(No message provided)"
             }),
             headers: { 'Content-Type': 'application/json' }
         }).finally(() => {
@@ -117,10 +117,10 @@
                 document.getElementById('text').innerHTML = "Yon ohhh! <br> Do you want some flowers?";
                 document.getElementById('displayImg').src = "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYng0ZHNzMWdhM2o0NXZkaXBtM2N2MHJwaDU5YTlicGFxeHdhZ2VnaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/T70hpBP1L0N7U0jtkq/giphy.gif";
                 
-                mainBtn.innerText = "Yes";
+                mainBtn.innerText = "Yes, please!";
+                mainBtn.disabled = false;
                 mainBtn.onclick = () => { window.location.href = "flowers-main/index.html"; };
                 
-                document.getElementById('noBtn').style.display = 'none';
                 document.getElementById('messageInput').style.display = 'none';
                 document.getElementById('happyMusic').play();
             }
@@ -128,13 +128,12 @@
     }
 
     function sayNo() {
-        // Record the "No" response first
+        // Grab the message they typed before recording the 'No'
         saveResponse('NO 💔');
 
-        // Update UI
-        document.getElementById('text').innerHTML = "Aray mo, pakak"; 
-        document.getElementById('noBtn').style.display = 'none'; 
+        document.getElementById('text').innerHTML = "Aray mo, pakak <br> why naman"; 
         document.getElementById('mainBtn').style.display = 'none';
+        document.getElementById('noBtn').style.display = 'none';
         document.getElementById('messageInput').style.display = 'none';
         document.getElementById('displayImg').src = "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWNmc2UyeTZoZzM1bzI3ZHBubTNnNXZ1aDJicjBzMXI0aHQ5d2ZsYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/lGBecpB2dIMwt6ohfI/giphy.gif";
         
